@@ -257,7 +257,7 @@ func (p *Pool) Borrow(ctx context.Context, serverNames []string, wait bool, bolt
 
 		// Check if we have timed out after failed borrow
 		if timeOut() {
-			return nil, &PoolTimeout{servers: serverNames}
+			return nil, &PoolTimeout{err: err, servers: serverNames}
 		}
 	}
 

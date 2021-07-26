@@ -420,6 +420,7 @@ func (s *session) Run(
 		}
 		err = conn.ForceReset()
 		if err == nil {
+			s.log.Error(log.Session, s.logId, err)
 			break
 		}
 	}

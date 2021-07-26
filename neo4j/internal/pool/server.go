@@ -21,6 +21,7 @@ package pool
 
 import (
 	"container/list"
+	"log"
 	"sync/atomic"
 	"time"
 
@@ -43,6 +44,8 @@ const rememberFailedConnectDuration = 3 * time.Minute
 
 // Returns a idle connection if any
 func (s *server) getIdle() db.Connection {
+	log.Printf("num busy: %d, num idle: %d", s.busy.Len(), s.idle.Len())
+
 	// Remove from idle list and add to busy list
 	e := s.idle.Front()
 	if e != nil {

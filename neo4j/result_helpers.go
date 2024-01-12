@@ -21,15 +21,27 @@ package neo4j
 
 import "fmt"
 
-// Single returns one and only one record from the result stream. Any error passed in
+// Single is the built-in library method which causes memory leaks due to lack
+// of built-in Consume and incorrect example pattern.  Use SingleConsume instead.
+// deprecated
+func Single(result Result, err error) (*Record, error) {
+	panic("do not use Single due to memory leak, use SingleConsume instead")
+}
+
+// SingleConsume returns one and only one record from the result stream. Any error passed in
 // or reported while navigating the result stream is returned without any conversion.
 // If the result stream contains zero or more than one records error is returned.
-//   record, err := neo4j.Single(session.Run(...))
-func Single(result Result, err error) (*Record, error) {
+//   record, summary, err := neo4j.SingleConsume(session.Run(...))
+func SingleConsume(result Result, err error) (*Record, ResultSummary, error) {
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return result.Single()
+	rec, err := result.Single()
+	if err != nil {
+		return nil, nil, err
+	}
+	summ, err := result.Consume()
+	return rec, summ, err
 }
 
 // Collect loops through the result stream, collects records into a slice and returns the

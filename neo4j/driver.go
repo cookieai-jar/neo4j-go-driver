@@ -68,16 +68,19 @@ type Driver interface {
 // token as parameters and can also take optional configuration function(s) as variadic parameters.
 //
 // In order to connect to a single instance database, you need to pass a URI with scheme 'bolt', 'bolt+s' or 'bolt+ssc'.
+//
 //	driver, err = NewDriver("bolt://db.server:7687", BasicAuth(username, password))
 //
 // In order to connect to a causal cluster database, you need to pass a URI with scheme 'neo4j', 'neo4j+s' or 'neo4j+ssc'
 // and its host part set to be one of the core cluster members.
+//
 //	driver, err = NewDriver("neo4j://core.db.server:7687", BasicAuth(username, password))
 //
 // You can override default configuration options by providing a configuration function(s)
+//
 //	driver, err = NewDriver(uri, BasicAuth(username, password), function (config *Config) {
-// 		config.MaxConnectionPoolSize = 10
-// 	})
+//		config.MaxConnectionPoolSize = 10
+//	})
 func NewDriver(target string, auth AuthToken, configurers ...func(*Config)) (Driver, error) {
 	parsed, err := url.Parse(target)
 	if err != nil {
@@ -161,6 +164,7 @@ func NewDriver(target string, auth AuthToken, configurers ...func(*Config)) (Dri
 	d.connector.Log = d.log
 	d.connector.Auth = auth.tokens
 	d.connector.RoutingContext = routingContext
+	d.connector.ClientCertificateProvider = d.config.ClientCertificateProvider
 
 	// Let the pool use the same logid as the driver to simplify log reading.
 	d.pool = pool.New(d.config.MaxConnectionPoolSize, d.config.MaxConnectionLifetime, d.connector.Connect, d.log, d.logId)

@@ -25,6 +25,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j/auth"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/log"
 )
 
@@ -98,6 +99,8 @@ type Config struct {
 	// To turn off fetching in batches and always fetch everything, set FetchSize to FetchAll.
 	// If a single large result is to be retrieved this is the most performant setting.
 	FetchSize int
+
+	ClientCertificateProvider auth.ClientCertificateProvider
 }
 
 func defaultConfig() *Config {

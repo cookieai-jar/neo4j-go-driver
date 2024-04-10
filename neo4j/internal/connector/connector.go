@@ -28,23 +28,25 @@ import (
 	"net"
 	"time"
 
+	"github.com/neo4j/neo4j-go-driver/v4/neo4j/auth"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/db"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/internal/bolt"
 	"github.com/neo4j/neo4j-go-driver/v4/neo4j/log"
 )
 
 type Connector struct {
-	SkipEncryption   bool
-	SkipVerify       bool
-	RootCAs          *x509.CertPool
-	DialTimeout      time.Duration
-	SocketKeepAlive  bool
-	Auth             map[string]interface{}
-	Log              log.Logger
-	UserAgent        string
-	RoutingContext   map[string]string
-	Network          string
-	SupplyConnection func(address string) (net.Conn, error)
+	SkipEncryption            bool
+	SkipVerify                bool
+	RootCAs                   *x509.CertPool
+	DialTimeout               time.Duration
+	SocketKeepAlive           bool
+	Auth                      map[string]interface{}
+	Log                       log.Logger
+	UserAgent                 string
+	RoutingContext            map[string]string
+	Network                   string
+	SupplyConnection          func(address string) (net.Conn, error)
+	ClientCertificateProvider auth.ClientCertificateProvider
 }
 
 type ConnectError struct {
@@ -96,6 +98,14 @@ func (c Connector) Connect(address string, boltLogger log.BoltLogger) (db.Connec
 		ServerName:         serverName,
 		MinVersion:         tls.VersionTLS12,
 	}
+	if c.ClientCertificateProvider != nil && !c.SkipEncryption {
+		cert := c.ClientCertificateProvider.GetCertificate()
+		if cert != nil {
+			// Append the obtained certificate to the Certificates slice.
+			config.Certificates = append(config.Certificates, *cert)
+		}
+	}
+
 	tlsconn := tls.Client(conn, &config)
 	err = tlsconn.Handshake()
 	if err != nil {

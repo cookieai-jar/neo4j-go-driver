@@ -30,12 +30,27 @@ type chunker struct {
 	offset int
 }
 
+const initialBufSize = 1024
+const initialSizesSize = 3
+
 func newChunker() chunker {
-	return chunker{
-		buf:    make([]byte, 0, 1024),
-		sizes:  make([]int, 0, 3),
-		offset: 0,
+	c := chunker{}
+	c.prepareForReuse()
+	return c
+}
+
+func (c *chunker) prepareForReuse() {
+	if cap(c.buf) == initialBufSize {
+		c.buf = c.buf[:0]
+	} else {
+		c.buf = make([]byte, 0, initialBufSize)
 	}
+	if cap(c.sizes) == initialSizesSize {
+		c.sizes = c.sizes[:0]
+	} else {
+		c.sizes = make([]int, 0, initialSizesSize)
+	}
+	c.offset = 0
 }
 
 func (c *chunker) beginMessage() {
@@ -98,10 +113,7 @@ func (c *chunker) send(wr io.Writer) error {
 		}
 	}
 
-	// Prepare for reuse
-	c.offset = 0
-	c.buf = c.buf[:0]
-	c.sizes = c.sizes[:0]
+	c.prepareForReuse()
 
 	return nil
 }
